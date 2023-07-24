@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/rosennabs/tinyapp/issues"
   },
-  "homepage": "https://github.com/rosennabs/tinyapp#readme"
+  "homepage": "https://github.com/rosennabs/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
 }
