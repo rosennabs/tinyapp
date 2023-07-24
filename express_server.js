@@ -16,7 +16,7 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
-//Set up the web server to listen on a specific port abnd displays message once app starts to run
+//Set up the web server to listen on a specific port and displays message once app starts to run
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
@@ -33,4 +33,11 @@ app.get("/urls.json", (req, res) => {
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
+
+//Create a new route handler for "/urls" and pass the data in urlDatabase variable to our template
+app.get("/urls", (req, res) => {
+  const templateVars = { urls: urlDatabase };
+  res.render("urls_index", templateVars);
+});
+
 
