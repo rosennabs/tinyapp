@@ -8,7 +8,7 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-//Allow for HTTP GET request to the root path "/" of the web app and a response from the server
+//Allow for HTTP GET request to the root path "/" of the web app (landing page) and a response from the server
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -25,3 +25,9 @@ app.listen(PORT, () => {
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
+
+//Include HTMl code in response. Visit http://localhost:8080/hello to see changes
+app.get("/hello", (req, res) => {
+  res.send("<html><body>Hello <b>World</b></body></html>\n");
+});
+
