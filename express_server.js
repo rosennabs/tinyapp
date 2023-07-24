@@ -21,3 +21,7 @@ app.listen(PORT, () => {
 // Note: You can start server by running node express_server.js in the terminal.
 // Visit http://localhost:8080/ in your browser to see the Hello! response.
 
+//Serve the urlDatabase object as JSON data when the client sends a GET request to the "/urls.json" path
+app.get("/urls.json", (req, res) => {
+  res.json(urlDatabase);
+});
