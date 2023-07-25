@@ -1,5 +1,6 @@
 //Set up a basic web server using express.js in node.js
 const express = require("express");
+const cookieParser = require('cookie-parser');
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -27,6 +28,7 @@ const generateRandomString = function (length) {
 
 //Use middleware to make body readable
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 //Allow for HTTP GET request to the root path "/" of the web app (landing page) and a response from the server
 app.get("/", (req, res) => {
@@ -52,15 +54,21 @@ app.get("/hello", (req, res) => {
 });
 
 
-//Create a new route handler for "/urls" and pass the data in urlDatabase variable to our template
+//Create a new route handler for "/urls" and pass the data in urlDatabase variable to our url_index template
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = {
+    username: req.cookies["username"],
+    urls: urlDatabase
+  };
   res.render("urls_index", templateVars);
 });
 
 //Create a new route to render the url_new template
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = {
+    username: req.cookies["username"]
+  };
+  res.render("urls_new", templateVars);
 });
 
 app.post("/urls", (req, res) => {
@@ -85,9 +93,11 @@ app.get("/u/:id", (req, res) => {
 });
 
 
+//Create a new route to render the urls_show template
 app.get("/urls/:shortId", (req, res) => {//req.params is an object. The : represents req.params key and shortId reps the property
   const shortId = req.params.shortId; //Assign the key-value pair to a variable named shortId
   const templateVars = {
+    username: req.cookies["username"],
     id: shortId,
     longURL: urlDatabase[shortId]
   };
