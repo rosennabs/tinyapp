@@ -99,7 +99,7 @@ app.post("/urls/:id", (req, res) => {
   const shortURL = req.params.id;
   const updatedLongURL = req.body.updatedLongURL;
   urlDatabase[shortURL] = updatedLongURL;
-  
+
   res.redirect("/urls");
 });
 
@@ -111,4 +111,11 @@ app.post("/urls/:id/delete", (req, res) => {
   res.redirect("/urls"); //Redirects to the index page
 
 });
+
+//Adds a login POST route to handle user's login
+app.post("/login", (req, res) => {
+  res.cookie("username", req.body.username);
+  res.redirect("/urls");
+})
+
 
