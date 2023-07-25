@@ -94,4 +94,11 @@ app.get("/urls/:shortId", (req, res) => {//req.params is an object. The : repres
   res.render("urls_show", templateVars);
 });
 
+//Deletes a URL resource from the app
+app.post("/urls/:id/delete", (req, res) => {
+  const shortURL = req.params.id;
+  delete urlDatabase[shortURL];
+   
+  res.redirect("/urls") //Redirects to the index page
 
+});
