@@ -66,10 +66,10 @@ app.get("/urls/new", (req, res) => {
 app.post("/urls", (req, res) => {
   const longURL = req.body.longURL;
   const shortURL = generateRandomString(6);
-  res.redirect(`/urls/${shortURL}`); // redirects the user to the random short URL id generated
-
   // Store the shortURL and its corresponding longURL in the database
   urlDatabase[shortURL] = longURL;
+
+  res.redirect(`/urls/${shortURL}`); // redirects the user to the random short URL id generated
 });
 
 
