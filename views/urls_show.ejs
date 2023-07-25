@@ -24,7 +24,20 @@
         </a>
       </p>
     </div>
-    <div class="card-footer text-muted"></div>
+      <h3>Edit</h3>
+    
+    <div class="card-footer text-muted" style="display: flex; justify-content: center">
+      <form class="form-inline text-center" action="/urls/<%= id %>" method="POST">
+      
+        <div class="form-group mb-2">
+          <label for="updatedLongURL">Edit URL:</label>
+          <input class="form-control" type="text" name="updatedLongURL" placeholder="http://"
+            style="width: 300px; margin: 1em" />
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+      
+      </form>
+    </div>
   </div>
   <!-- Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
