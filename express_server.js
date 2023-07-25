@@ -11,6 +11,19 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+//Returns a string of 6 random alphanumeric characters 
+const generateRandomString = function (length) {
+  const alphanumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let randomString = '';
+  
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * alphanumeric.length); // generates a random index within the range of valid indices for the alphanumeric.
+    randomString += alphanumeric[randomIndex];
+  }
+  
+  return randomString;
+}
+
 
 //Use middleware to make body readable
 app.use(express.urlencoded({ extended: true }));
