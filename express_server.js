@@ -40,4 +40,12 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+app.get("/urls/:shortId", (req, res) => {//req.params is an object. The : represents req.params key and shortId reps the property
+  const shortId = req.params.shortId; //Assign the key-value pair to a variable named shortId
+  const templateVars = {
+    id: shortId,
+    longURL: urlDatabase[shortId]
+  };
+  res.render("urls_show", templateVars);
+});
 
