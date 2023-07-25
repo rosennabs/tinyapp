@@ -94,11 +94,21 @@ app.get("/urls/:shortId", (req, res) => {//req.params is an object. The : repres
   res.render("urls_show", templateVars);
 });
 
+//Edits and updates the longURL in the database
+app.post("/urls/:id", (req, res) => {
+  const shortURL = req.params.id;
+  const updatedLongURL = req.body.updatedLongURL;
+  urlDatabase[shortURL] = updatedLongURL;
+
+  res.redirect("/urls");
+});
+
 //Deletes a URL resource from the app
 app.post("/urls/:id/delete", (req, res) => {
   const shortURL = req.params.id;
   delete urlDatabase[shortURL];
    
-  res.redirect("/urls") //Redirects to the index page
+  res.redirect("/urls"); //Redirects to the index page
 
 });
+
