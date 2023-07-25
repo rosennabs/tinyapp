@@ -73,6 +73,17 @@ app.post("/urls", (req, res) => {
 });
 
 
+app.get("/u/:id", (req, res) => {
+  const shortURL = req.params.id;
+  const longURL = urlDatabase[shortURL];
+  
+  if (longURL) {
+    res.redirect(longURL); //redirect any request to "/u/:id" to the long URL
+  } else {
+    res.send("Short URL not found");
+  }
+});
+
 
 app.get("/urls/:shortId", (req, res) => {//req.params is an object. The : represents req.params key and shortId reps the property
   const shortId = req.params.shortId; //Assign the key-value pair to a variable named shortId
