@@ -11,6 +11,10 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+
+//Use middleware to make body readable
+app.use(express.urlencoded({ extended: true }));
+
 //Allow for HTTP GET request to the root path "/" of the web app (landing page) and a response from the server
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -45,6 +49,12 @@ app.get("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
+
+app.post("/urls", (req, res) => {
+  console.log(req.body); // Log the POST request body to the console
+  res.send("Ok"); // Respond with 'Ok' (we will replace this)
+});
+
 
 app.get("/urls/:shortId", (req, res) => {//req.params is an object. The : represents req.params key and shortId reps the property
   const shortId = req.params.shortId; //Assign the key-value pair to a variable named shortId
