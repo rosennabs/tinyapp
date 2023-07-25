@@ -34,10 +34,16 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
+
 //Create a new route handler for "/urls" and pass the data in urlDatabase variable to our template
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
+});
+
+//Create a new route to render the url_new template
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
 });
 
 app.get("/urls/:shortId", (req, res) => {//req.params is an object. The : represents req.params key and shortId reps the property
@@ -48,4 +54,5 @@ app.get("/urls/:shortId", (req, res) => {//req.params is an object. The : repres
   };
   res.render("urls_show", templateVars);
 });
+
 
