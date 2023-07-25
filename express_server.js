@@ -64,9 +64,14 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
-  res.send("Ok"); // Respond with 'Ok' (we will replace this)
+  const longURL = req.body.longURL;
+  const shortURL = generateRandomString(6);
+  res.redirect(`/urls/${shortURL}`); // redirects the user to the random short URL id generated
+
+  // Store the shortURL and its corresponding longURL in the database
+  urlDatabase[shortURL] = longURL;
 });
+
 
 
 app.get("/urls/:shortId", (req, res) => {//req.params is an object. The : represents req.params key and shortId reps the property
