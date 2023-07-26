@@ -150,7 +150,7 @@ app.post("/logout", (req, res) => {
 
 //Create a GET route to render the reg form
 app.get("/register", (req, res) => {
-  res.render("urls_reg");
+  res.render("reg_form");
 });
 
 //Create a POST route to handle the registration form data
@@ -189,3 +189,8 @@ const findUser = function (email) {
   }
   return null;
 };
+
+//Create a GET route to render the login form
+app.get("/login", (req, res) => {
+  res.render("login_form");
+});

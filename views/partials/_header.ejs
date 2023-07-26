@@ -17,28 +17,21 @@
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
 
-        <!-- Checks if email is present -->
+        <% if (!user) { %>
+          <!-- Display registration and login links when user is not logged in -->
+            <a class="nav-item nav-link" href="/register">Register</a>
+            <span style="margin: 10px"></span>
+            <a class="nav-item nav-link" href="/login">Login</a>
 
-        <% if( user ){ %>
-        <form class="form-inline" action="/logout" method="POST">
-          <span class="nav-item"> Logged in as: <%= user.email %> </span>
-
-          <button type="submit" class="btn btn-primary">Logout</button>
-        </form>
-
-        <% } else{ %>
-        <form class="form-inline" action="/login" method="POST">
-          <label for="email"></label>
-          <input
-            class="form-control"
-            type="text"
-            name="email"
-            placeholder="Username"
-            style="width: 200px; margin: 1em"
-          />
-          <button type="submit" class="btn btn-primary">Login</button>
-        </form>
+        <% } else { %>
+          <!-- Display logout button when user is logged in -->
+            <form class="form-inline" action="/logout" method="POST">
+              <span class="nav-item"> Logged in as: <%= user.email %> </span>
+              <button type="submit" class="btn btn-primary">Logout</button>
+            </form>
+          </li>
         <% } %>
+    
       </div>
     </div>
   </nav>
