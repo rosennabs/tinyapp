@@ -138,14 +138,26 @@ app.post("/urls/:id/delete", (req, res) => {
 
 //Add a login POST route to handle user's login
 app.post("/login", (req, res) => {
-  res.cookie("user_id", req.body.email);
+  const userEmailInput = req.body.email;
+  const userPasswordInput = req.body.password;
+
+  const userFound = findUser(userEmailInput); //Check if user email exists
+  if (!userFound) {
+    return res.status(403).send("User account does not exist. Please register for a new account");
+  }
+  if (userFound) {
+    if (userFound.password !== userPasswordInput) {
+      return res.status(403).send("Incorrect email or password");
+    } 
+  }
+  res.cookie("user_id", userFound.id);
   res.redirect("/urls");
 });
 
 //Add a logout POST route
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
-  res.redirect("/urls");
+  res.redirect("/login");
 });
 
 //Create a GET route to render the reg form

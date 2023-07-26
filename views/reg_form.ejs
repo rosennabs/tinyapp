@@ -5,14 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registration page</title>
 </head>
+
 <body>
+    <h1>Create Account</h1>
     <!-- Create a registration form with an email and password -->
     <form method="POST" action="/register">
-        <label for="emailField">Email:</label><br/>
-        <input id="emailField" type="email" name="email"/><br/>
-
+        <label for="emailField">Email Adress:</label><br/>
+        <input id="emailField" type="email" name="email" placeholder="Enter email"/><br/>
+        
         <label for="passwordField">Password:</label><br/>
-        <input id="passwordField" type="password" name="password"/><br/>
+        <input id="passwordField" type="password" name="password" placeholder="Enter password"/><br/>
         <button type="submit">Sign up</button>
     </form>
 </body>
