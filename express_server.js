@@ -126,11 +126,15 @@ app.post("/urls/:id/delete", (req, res) => {
 app.post("/login", (req, res) => {
   res.cookie("username", req.body.username);
   res.redirect("/urls");
-})
+});
 
 //Adds a logout POST route
 app.post("/logout", (req, res) => {
   res.clearCookie("username");
   res.redirect("/urls");
-})
+});
 
+//Creates a GET route to render the reg form
+app.get("/register", (req, res) => {
+  res.render("urls_reg")
+});
