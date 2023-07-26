@@ -17,21 +17,22 @@
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
 
-        <!-- Checks if username is present -->
-        <% if( username ){ %>
+        <!-- Checks if email is present -->
+
+        <% if( user ){ %>
         <form class="form-inline" action="/logout" method="POST">
-          <span class="nav-item"> Logged in as: <%= `${username}!`%> </span>
+          <span class="nav-item"> Logged in as: <%= user.email %> </span>
 
           <button type="submit" class="btn btn-primary">Logout</button>
         </form>
 
         <% } else{ %>
         <form class="form-inline" action="/login" method="POST">
-          <label for="username"></label>
+          <label for="email"></label>
           <input
             class="form-control"
             type="text"
-            name="username"
+            name="email"
             placeholder="Username"
             style="width: 200px; margin: 1em"
           />
