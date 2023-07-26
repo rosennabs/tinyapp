@@ -128,4 +128,9 @@ app.post("/login", (req, res) => {
   res.redirect("/urls");
 })
 
+//Adds a logout POST route
+app.post("/logout", (req, res) => {
+  res.clearCookie("username");
+  res.redirect("/urls");
+})
 
