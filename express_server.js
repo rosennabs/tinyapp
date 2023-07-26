@@ -155,12 +155,37 @@ app.get("/register", (req, res) => {
 
 //Create a POST route to handle the registration form data
 app.post("/register", (req, res) => {
-  const userRandomID = generateRandomString(4);
+  
+  const userEmailInput = req.body.email;
+  const userPasswordInput = req.body.password;
+
+  if (!userEmailInput || !userPasswordInput) {//Check for an invalid entry: null, empty, undefined
+    return res.status(400).send("Email or password must be filled");
+  }
+  const userFound = findUser(userEmailInput);//Check if user email exists
+  if (userFound) {
+    return res.status(400).send("Email already exists");
+  }
+
+  const userRandomID = generateRandomString(6); 
+
+  //Store new user in the users database
   users[userRandomID] = {
     id: userRandomID,
-    email: req.body.email,
-    password: req.body.password,
+    email: userEmailInput,
+    password: userPasswordInput,
   };
+
   res.cookie("user_id", userRandomID);
   res.redirect("/urls");
 });
+
+//Check if email input already exists in the user database
+const findUser = function (email) {
+  for (let key in users) {
+    if (users[key].email === email) {
+      return users[key];
+    } 
+  }
+  return null;
+};
