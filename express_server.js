@@ -81,6 +81,10 @@ app.get("/urls", (req, res) => {
 
 //Create a new route to render the url_new template
 app.get("/urls/new", (req, res) => {
+  if (!req.cookies.user_id) {
+    // Redirect to login page if user is not logged in
+    return res.redirect("/login");
+  }
   const templateVars = {
     user: users[req.cookies.user_id],
   };
@@ -88,22 +92,29 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
+  if (!req.cookies.user_id) {
+    // If user is not logged in, send an error message and return early
+    return res.send("Only registered users can access this feature.");
+  } 
+  // If user is logged in, proceed with the URL shortening logic
   const longURL = req.body.longURL;
   const shortURL = generateRandomString(6);
   // Store the shortURL and its corresponding longURL in the database
   urlDatabase[shortURL] = longURL;
 
   res.redirect(`/urls/${shortURL}`); // redirects the user to the random short URL id generated
+
 });
 
 app.get("/u/:id", (req, res) => {
+
   const shortURL = req.params.id;
   const longURL = urlDatabase[shortURL];
 
   if (longURL) {
     res.redirect(longURL); //redirect any request to "/u/:id" to the long URL
   } else {
-    res.send("Short URL not found");
+    res.send("URL does not exist in our database");
   }
 });
 
@@ -111,6 +122,11 @@ app.get("/u/:id", (req, res) => {
 app.get("/urls/:shortId", (req, res) => {
   //req.params is an object. The : represents req.params key and shortId reps the property
   const shortId = req.params.shortId; //Assign the key-value pair to a variable named shortId
+
+  if (!urlDatabase[shortId]) {
+    return res.send("Short URL not available");
+  }
+
   const templateVars = {
     user: users[req.cookies["user_id"]],
     id: shortId,
@@ -162,6 +178,10 @@ app.post("/logout", (req, res) => {
 
 //Create a GET route to render the reg form
 app.get("/register", (req, res) => {
+  if (req.cookies.user_id) {
+    // Redirect to /urls if user is already logged in
+    res.redirect("/urls");
+  }
   res.render("reg_form");
 });
 
@@ -204,5 +224,9 @@ const findUser = function (email) {
 
 //Create a GET route to render the login form
 app.get("/login", (req, res) => {
+  if (req.cookies.user_id) {// Redirect to /urls if user is already logged in
+    res.redirect("/urls");
+  }
   res.render("login_form");
+  
 });
