@@ -6,9 +6,20 @@ const app = express();
 const PORT = 8080; // default port 8080
 
 //Create a url database, to store and access urls in the app
+
 const urlDatabase = {
-  b2xVn2: "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
+  b2xVn2: {
+    longURL: "http://www.lighthouselabs.ca",
+    user_id: "gh364d",
+  },
+  "9sm5xK": {
+    longURL: "https://www.google.ca",
+    user_id: "hfuh47",
+  },
+  w37dh4: {
+    longURL: "https://www.github.com",
+    user_id: "hfuh47",
+  }
 };
 
 //Create a user database, to store and access users in the app
@@ -67,12 +78,25 @@ app.use(cookieParser());
 app.get("/urls", (req, res) => {
   if (!req.cookies.user_id) { //if user is not logged in, redirect to the login page
     
-    return res.redirect("/login");
+    return res.send("Please login to access available URLs");
   }
+
+  //Show logged in user's URL. Compare user_id in urldatabase with user_id from cookie
+
+  const urlsForUser = () => {
+    const usersURLs = {};
+    for (let key in urlDatabase) {
+      if (urlDatabase[key].user_id === req.cookies.user_id) {
+        //Store a user's URLs
+        usersURLs[key] = urlDatabase[key]; 
+      } 
+    }
+    return usersURLs;
+  };
 
   const templateVars = {
     user: users[req.cookies.user_id],
-    urls: urlDatabase,
+    urls: urlsForUser()
   };
 
   res.render("urls_index", templateVars);
@@ -93,27 +117,38 @@ app.get("/urls/new", (req, res) => {
 //Redirect user to the long URL webpage when a request is made to /u/:id
 app.get("/u/:id", (req, res) => {
   const shortURL = req.params.id; //Fetch the short URL generated
-  const longURL = urlDatabase[shortURL]; //Find the corresponding longURL stored in the database
+  const longURL = urlDatabase[shortURL].longURL; //Find the corresponding longURL stored in the database
 
   if (longURL) {
     res.redirect(longURL); //If found, redirect user to the long URL webpage
   } else {
-    res.send("URL does not exist in our database");
+    res.send(
+      "Oops! Short url does not exist. Please check the url and try again."
+    );
   }
 });
 
 //Render the urls_show /edit page to access it via the url_index page
 app.get("/urls/:shortId", (req, res) => {
-  const shortId = req.params.shortId; 
+  if (!req.cookies.user_id) {
+    // Redirect to login page if user is not logged in
+    return res.send("Please login to access this url!");
+  }
+
+  const shortId = req.params.shortId;
+
+  if (!urlDatabase[shortId].user_id !== req.cookies.user_id) {
+    return res.send("Url does not exist in your account. Please check and try again!")
+  }
 
   if (!urlDatabase[shortId]) {
-    return res.send("Short URL not available");
+    return res.send("Oops! Short url does not exist. Please check the url and try again.");
   }
 
   const templateVars = {
     user: users[req.cookies.user_id],
     id: shortId,
-    longURL: urlDatabase[shortId],
+    longURL: urlDatabase[shortId].longURL,
 
   };
 
@@ -157,20 +192,23 @@ app.get("/login", (req, res) => {
 
 //POST routes
 
-//Recieve the form submission done in the urls_new page
+//Handle POST requests to /urls
 app.post("/urls", (req, res) => {
   if (!req.cookies.user_id) {
     // If user is not logged in, send an error message and return early
     return res.send("Only registered users can access this feature.");
   }
   // If user is logged in, proceed with the URL shortening logic
-  const longURL = req.body.longURL; //Get the longURL inputted in the form
-  const shortURL = generateRandomString(6); 
+  const newLongURL = req.body.longURL; //Get the longURL inputted in the form
+  const newShortURL = generateRandomString(6);
 
-  urlDatabase[shortURL] = longURL; //Store the shortURL and its corresponding longURL in the urldatabase
+  //Store the new short and long url and associated user_id in the urldatabase
+  urlDatabase[newShortURL] = {
+    longURL: newLongURL,
+    user_id: req.cookies.user_id
+  };
 
-
-  res.redirect(`/urls/${shortURL}`); //Redirect the user to the urls/shortID page
+  res.redirect(`/urls/${newShortURL}`); //Redirect the user to the urls/shortID page
 });
 
 //Receives the delete request and deletes a URL resource from the app
@@ -186,7 +224,7 @@ app.post("/urls/:id/delete", (req, res) => {
 app.post("/urls/edit/:id", (req, res) => {
   const shortURL = req.params.id;
   const updatedLongURL = req.body.updatedLongURL;
-  urlDatabase[shortURL] = updatedLongURL;
+  urlDatabase[shortURL].longURL = updatedLongURL;
 
   res.redirect("/urls");
 });
