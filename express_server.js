@@ -1,11 +1,9 @@
 //Set up a basic web server using express.js in node.js
 const express = require("express");
 const cookieParser = require("cookie-parser");
+
 const app = express();
 const PORT = 8080; // default port 8080
-
-//Set ejs template as the view engine
-app.set("view engine", "ejs");
 
 //Create a url database, to store and access urls in the app
 const urlDatabase = {
@@ -15,19 +13,19 @@ const urlDatabase = {
 
 //Create a user database, to store and access users in the app
 const users = {
-  user1RandomID: {
-    id: "user1RandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur",
+  gh364d: {
+    id: "gh364d",
+    email: "user1@gmail.com",
+    password: "dino-saur01",
   },
-  user2RandomID: {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk",
+  hfuh47: {
+    id: "hfuh47",
+    email: "user2@gmail.com",
+    password: "washer-funk",
   },
 };
 
-//Returns a string of 6 random alphanumeric characters
+//Create a string of 6 random alphanumeric characters
 const generateRandomString = function (length) {
   const alphanumeric =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -41,45 +39,46 @@ const generateRandomString = function (length) {
   return randomString;
 };
 
-//Use middleware to make body readable
+//Check if email input already exists in the user database
+const findUser = function (email) {
+  for (let key in users) {
+    if (users[key].email === email) {
+      return users[key];
+    }
+  }
+  return null;
+};
+
+//Set ejs as the view engine
+app.set("view engine", "ejs");
+
+//Use middleware to receive readable info from our forms' body
 app.use(express.urlencoded({ extended: true }));
+
+//Use a cookie parser to fetch cookies
 app.use(cookieParser());
 
-//Allow for HTTP GET request to the root path "/" of the web app (landing page) and a response from the server
-app.get("/", (req, res) => {
-  res.send("Hello!");
-});
 
-//Set up the web server to listen on a specific port and displays message once app starts to run
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
-});
 
-// Note: You can start server by running node express_server.js in the terminal.
-// Visit http://localhost:8080/ in your browser to see the Hello! response.
 
-//Serve the urlDatabase object as JSON data when the client sends a GET request to the "/urls.json" path
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
+//GET routes 
 
-//Include HTMl code in response. Visit http://localhost:8080/hello to see changes
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
-
-//Create a new route handler for "/urls" and pass the data in urlDatabase variable to our url_index template
+//Display the "/urls_index" template containing the list of URLs in our database.
 app.get("/urls", (req, res) => {
-  const objectOfCurrentUserReg = users[req.cookies.user_id];
+  if (!req.cookies.user_id) { //if user is not logged in, redirect to the login page
+    
+    return res.redirect("/login");
+  }
+
   const templateVars = {
-    user: objectOfCurrentUserReg,
+    user: users[req.cookies.user_id],
     urls: urlDatabase,
   };
 
   res.render("urls_index", templateVars);
 });
 
-//Create a new route to render the url_new template
+//Display the url_new template/page to create new URL
 app.get("/urls/new", (req, res) => {
   if (!req.cookies.user_id) {
     // Redirect to login page if user is not logged in
@@ -91,65 +90,105 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
-app.post("/urls", (req, res) => {
-  if (!req.cookies.user_id) {
-    // If user is not logged in, send an error message and return early
-    return res.send("Only registered users can access this feature.");
-  } 
-  // If user is logged in, proceed with the URL shortening logic
-  const longURL = req.body.longURL;
-  const shortURL = generateRandomString(6);
-  // Store the shortURL and its corresponding longURL in the database
-  urlDatabase[shortURL] = longURL;
-
-  res.redirect(`/urls/${shortURL}`); // redirects the user to the random short URL id generated
-
-});
-
+//Redirect user to the long URL webpage when a request is made to /u/:id
 app.get("/u/:id", (req, res) => {
-
-  const shortURL = req.params.id;
-  const longURL = urlDatabase[shortURL];
+  const shortURL = req.params.id; //Fetch the short URL generated
+  const longURL = urlDatabase[shortURL]; //Find the corresponding longURL stored in the database
 
   if (longURL) {
-    res.redirect(longURL); //redirect any request to "/u/:id" to the long URL
+    res.redirect(longURL); //If found, redirect user to the long URL webpage
   } else {
     res.send("URL does not exist in our database");
   }
 });
 
-//Create a new route to render the urls_show template
+//Render the urls_show /edit page to access it via the url_index page
 app.get("/urls/:shortId", (req, res) => {
-  //req.params is an object. The : represents req.params key and shortId reps the property
-  const shortId = req.params.shortId; //Assign the key-value pair to a variable named shortId
+  const shortId = req.params.shortId; 
 
   if (!urlDatabase[shortId]) {
     return res.send("Short URL not available");
   }
 
   const templateVars = {
-    user: users[req.cookies["user_id"]],
+    user: users[req.cookies.user_id],
     id: shortId,
     longURL: urlDatabase[shortId],
+
   };
+
   res.render("urls_show", templateVars);
 });
 
+//Create a GET route to render the reg form
+app.get("/register", (req, res) => {
+
+  const templateVars = {
+    user: users[req.cookies.user_id]
+  };
+
+  if (req.cookies.user_id) {
+    //Redirect to /urls if user is already logged in
+    return res.redirect("/urls");
+  }
+  
+  res.render("reg_form", templateVars);
+});
+
+//Create a GET route to render the login form
+app.get("/login", (req, res) => {
+
+  const templateVars = {
+    user: users[req.cookies.user_id]
+  };
+
+  if (req.cookies.user_id) {
+
+    // Redirect to /urls if user is already logged in
+    return res.redirect("/urls");
+  }
+  res.render("login_form", templateVars);
+});
+
+
+
+
+
+
+//POST routes
+
+//Recieve the form submission done in the urls_new page
+app.post("/urls", (req, res) => {
+  if (!req.cookies.user_id) {
+    // If user is not logged in, send an error message and return early
+    return res.send("Only registered users can access this feature.");
+  }
+  // If user is logged in, proceed with the URL shortening logic
+  const longURL = req.body.longURL; //Get the longURL inputted in the form
+  const shortURL = generateRandomString(6); 
+
+  urlDatabase[shortURL] = longURL; //Store the shortURL and its corresponding longURL in the urldatabase
+
+
+  res.redirect(`/urls/${shortURL}`); //Redirect the user to the urls/shortID page
+});
+
+//Receives the delete request and deletes a URL resource from the app
+app.post("/urls/:id/delete", (req, res) => {
+  const shortURL = req.params.id;
+  delete urlDatabase[shortURL];
+
+  res.redirect("/urls"); //Redirect to the index page with list of URLs
+});
+
+
 //Edit and update the longURL in the database
-app.post("/urls/:id", (req, res) => {
+app.post("/urls/edit/:id", (req, res) => {
   const shortURL = req.params.id;
   const updatedLongURL = req.body.updatedLongURL;
   urlDatabase[shortURL] = updatedLongURL;
 
   res.redirect("/urls");
-});
-
-//Delete a URL resource from the app
-app.post("/urls/:id/delete", (req, res) => {
-  const shortURL = req.params.id;
-  delete urlDatabase[shortURL];
-
-  res.redirect("/urls"); //Redirect to the index page
 });
 
 //Add a login POST route to handle user's login
@@ -161,13 +200,13 @@ app.post("/login", (req, res) => {
   if (!userFound) {
     return res.status(403).send("User account does not exist. Please register for a new account");
   }
-  if (userFound) {
-    if (userFound.password !== userPasswordInput) {
-      return res.status(403).send("Incorrect email or password");
-    } 
+  if (userFound && userPasswordInput !== userFound.password) {
+    return res.status(403).send("Incorrect email or password");
   }
+
   res.cookie("user_id", userFound.id);
   res.redirect("/urls");
+
 });
 
 //Add a logout POST route
@@ -176,30 +215,19 @@ app.post("/logout", (req, res) => {
   res.redirect("/login");
 });
 
-//Create a GET route to render the reg form
-app.get("/register", (req, res) => {
-  if (req.cookies.user_id) {
-    // Redirect to /urls if user is already logged in
-    res.redirect("/urls");
-  }
-  res.render("reg_form");
-});
-
 //Create a POST route to handle the registration form data
 app.post("/register", (req, res) => {
-  
   const userEmailInput = req.body.email;
   const userPasswordInput = req.body.password;
+  const userRandomID = generateRandomString(6);
 
-  if (!userEmailInput || !userPasswordInput) {//Check for an invalid entry: null, empty, undefined
-    return res.status(400).send("Email or password must be filled");
+  if (!userEmailInput || !userPasswordInput) {
+    return res.status(400).send("Please enter your email and password");
   }
-  const userFound = findUser(userEmailInput);//Check if user email exists
+  const userFound = findUser(userEmailInput); //Check if user email exists
   if (userFound) {
     return res.status(400).send("Email already exists");
   }
-
-  const userRandomID = generateRandomString(6); 
 
   //Store new user in the users database
   users[userRandomID] = {
@@ -212,21 +240,10 @@ app.post("/register", (req, res) => {
   res.redirect("/urls");
 });
 
-//Check if email input already exists in the user database
-const findUser = function (email) {
-  for (let key in users) {
-    if (users[key].email === email) {
-      return users[key];
-    } 
-  }
-  return null;
-};
 
-//Create a GET route to render the login form
-app.get("/login", (req, res) => {
-  if (req.cookies.user_id) {// Redirect to /urls if user is already logged in
-    res.redirect("/urls");
-  }
-  res.render("login_form");
-  
+
+//Set up the web server to listen on a specific port and displays message once app starts to run
+//All other routes should be above the listen method.
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
 });

@@ -27,11 +27,11 @@
       <h3>Edit</h3>
     
     <div class="card-footer text-muted" style="display: flex; justify-content: center">
-      <form class="form-inline text-center" action="/urls/<%= id %>" method="POST">
+      <form class="form-inline text-center" action="/urls/edit/<%= id %>" method="POST">
       
         <div class="form-group mb-2">
           <label for="updatedLongURL">Edit URL:</label>
-          <input class="form-control" type="text" name="updatedLongURL" placeholder="http://"
+          <input class="form-control" type="text" name="updatedLongURL" value="http://"
             style="width: 300px; margin: 1em" />
           <button type="submit" class="btn btn-primary">Submit</button>
         </div>
