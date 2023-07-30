@@ -9,4 +9,24 @@ const getUserByEmail = function (email, users) {
   return null;
 };
 
-module.exports = { getUserByEmail };
+
+//Create a string of 6 random alphanumeric characters
+const generateRandomString = function (length) {
+  const alphanumeric =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!&%*#_?/%$";
+  let randomString = "";
+
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * alphanumeric.length); // generates a random index within the range of valid indices for the alphanumeric.
+    randomString += alphanumeric[randomIndex];
+  }
+
+  return randomString;
+};
+
+
+
+module.exports = {
+  getUserByEmail,
+  generateRandomString
+};

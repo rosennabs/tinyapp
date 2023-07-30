@@ -37,20 +37,6 @@ const users = {
   },
 };
 
-//Create a string of 6 random alphanumeric characters
-const generateRandomString = function (length) {
-  const alphanumeric =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!&%*#_?/%$";
-  let randomString = "";
-
-  for (let i = 0; i < length; i++) {
-    const randomIndex = Math.floor(Math.random() * alphanumeric.length); // generates a random index within the range of valid indices for the alphanumeric.
-    randomString += alphanumeric[randomIndex];
-  }
-
-  return randomString;
-};
-
 
 //Set ejs as the view engine
 app.set("view engine", "ejs");
@@ -59,8 +45,8 @@ app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 
 //Use a cookie session to fetch and encrypt cookies
-const key1 = generateRandomString(32);
-const key2 = generateRandomString(32);
+const key1 = helpers.generateRandomString(32);
+const key2 = helpers.generateRandomString(32);
 
 app.use(
   cookieSession({
@@ -76,11 +62,7 @@ app.use(
 
 /*
 
-
-
-//GET routes
-
-
+GET routes
 
 */
 
@@ -196,13 +178,10 @@ app.get("/login", (req, res) => {
   res.render("login_form", templateVars);
 });
 
+
 /*
 
-
-
-//POST routes
-
-
+POST routes
 
 */
 
@@ -214,7 +193,7 @@ app.post("/urls", (req, res) => {
   }
   // If user is logged in, proceed with the URL shortening logic
   const newLongURL = req.body.longURL; //Get the longURL inputted in the form
-  const newShortURL = generateRandomString(6);
+  const newShortURL = helpers.generateRandomString(6);
 
   //Store the new short and long url and associated user_id in the urldatabase
   urlDatabase[newShortURL] = {
@@ -303,10 +282,10 @@ app.post("/register", (req, res) => {
   const userEmailInput = req.body.email;
   const userPasswordInput = req.body.password;
   const hashedPassword = bcrypt.hashSync(userPasswordInput, 10);
-  const userRandomID = generateRandomString(6);
+  const userRandomID = helpers.generateRandomString(6);
 
   if (!userEmailInput || !userPasswordInput) {
-    return res.status(400).send("Please enter your email and password");
+    return res.status(400).send("Please enter an email and password");
   }
   const userFound = helpers.getUserByEmail(userEmailInput, users); //Check if user email exists
   if (userFound) {
