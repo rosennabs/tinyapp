@@ -1,6 +1,6 @@
-//Set up a basic web server using express.js in node.js
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const bcrypt = require("bcryptjs");
 
 const app = express();
 const PORT = 8080; // default port 8080
@@ -267,15 +267,17 @@ app.post("/login", (req, res) => {
   const userPasswordInput = req.body.password;
 
   const userFound = findUser(userEmailInput); //Check if user email exists
+  const hashedPassword = userFound.password;
+
   if (!userFound) {
     return res
       .status(403)
       .send("User account does not exist. Please register for a new account");
   }
-  if (userFound && userPasswordInput !== userFound.password) {
+  if (userFound && (!bcrypt.compareSync(userPasswordInput, hashedPassword))) {
     return res.status(403).send("Incorrect email or password");
   }
-
+  
   res.cookie("user_id", userFound.id);
   res.redirect("/urls");
 });
@@ -290,6 +292,7 @@ app.post("/logout", (req, res) => {
 app.post("/register", (req, res) => {
   const userEmailInput = req.body.email;
   const userPasswordInput = req.body.password;
+  const hashedPassword = bcrypt.hashSync(userPasswordInput, 10);
   const userRandomID = generateRandomString(6);
 
   if (!userEmailInput || !userPasswordInput) {
@@ -304,7 +307,7 @@ app.post("/register", (req, res) => {
   users[userRandomID] = {
     id: userRandomID,
     email: userEmailInput,
-    password: userPasswordInput,
+    password: hashedPassword,
   };
 
   res.cookie("user_id", userRandomID);
