@@ -19,7 +19,7 @@ const urlDatabase = {
   w37dh4: {
     longURL: "https://www.github.com",
     user_id: "hfuh47",
-  }
+  },
 };
 
 //Create a user database, to store and access users in the app
@@ -72,12 +72,15 @@ app.use(cookieParser());
 
 
 
-//GET routes 
+
+
+//GET routes
 
 //Display the "/urls_index" template containing the list of URLs in our database.
 app.get("/urls", (req, res) => {
-  if (!req.cookies.user_id) { //if user is not logged in, redirect to the login page
-    
+  if (!req.cookies.user_id) {
+    //if user is not logged in, redirect to the login page
+
     return res.send("Please login to access available URLs");
   }
 
@@ -88,15 +91,15 @@ app.get("/urls", (req, res) => {
     for (let key in urlDatabase) {
       if (urlDatabase[key].user_id === req.cookies.user_id) {
         //Store a user's URLs
-        usersURLs[key] = urlDatabase[key]; 
-      } 
+        usersURLs[key] = urlDatabase[key];
+      }
     }
     return usersURLs;
   };
 
   const templateVars = {
     user: users[req.cookies.user_id],
-    urls: urlsForUser()
+    urls: urlsForUser(),
   };
 
   res.render("urls_index", templateVars);
@@ -137,19 +140,22 @@ app.get("/urls/:shortId", (req, res) => {
 
   const shortId = req.params.shortId;
 
-  if (!urlDatabase[shortId].user_id !== req.cookies.user_id) {
-    return res.send("Url does not exist in your account. Please check and try again!")
+  if (urlDatabase[shortId].user_id !== req.cookies.user_id) {
+    return res.send(
+      "Url does not exist in your account. Please check and try again!"
+    );
   }
 
   if (!urlDatabase[shortId]) {
-    return res.send("Oops! Short url does not exist. Please check the url and try again.");
+    return res.send(
+      "Oops! Short url does not exist. Please check the url and try again."
+    );
   }
 
   const templateVars = {
     user: users[req.cookies.user_id],
     id: shortId,
     longURL: urlDatabase[shortId].longURL,
-
   };
 
   res.render("urls_show", templateVars);
@@ -157,28 +163,25 @@ app.get("/urls/:shortId", (req, res) => {
 
 //Create a GET route to render the reg form
 app.get("/register", (req, res) => {
-
   const templateVars = {
-    user: users[req.cookies.user_id]
+    user: users[req.cookies.user_id],
   };
 
   if (req.cookies.user_id) {
     //Redirect to /urls if user is already logged in
     return res.redirect("/urls");
   }
-  
+
   res.render("reg_form", templateVars);
 });
 
 //Create a GET route to render the login form
 app.get("/login", (req, res) => {
-
   const templateVars = {
-    user: users[req.cookies.user_id]
+    user: users[req.cookies.user_id],
   };
 
   if (req.cookies.user_id) {
-
     // Redirect to /urls if user is already logged in
     return res.redirect("/urls");
   }
@@ -196,7 +199,7 @@ app.get("/login", (req, res) => {
 app.post("/urls", (req, res) => {
   if (!req.cookies.user_id) {
     // If user is not logged in, send an error message and return early
-    return res.send("Only registered users can access this feature.");
+    return res.send("Please login to access this feature.");
   }
   // If user is logged in, proceed with the URL shortening logic
   const newLongURL = req.body.longURL; //Get the longURL inputted in the form
@@ -205,7 +208,7 @@ app.post("/urls", (req, res) => {
   //Store the new short and long url and associated user_id in the urldatabase
   urlDatabase[newShortURL] = {
     longURL: newLongURL,
-    user_id: req.cookies.user_id
+    user_id: req.cookies.user_id,
   };
 
   res.redirect(`/urls/${newShortURL}`); //Redirect the user to the urls/shortID page
@@ -214,15 +217,44 @@ app.post("/urls", (req, res) => {
 //Receives the delete request and deletes a URL resource from the app
 app.post("/urls/:id/delete", (req, res) => {
   const shortURL = req.params.id;
+  
+  if (!urlDatabase[shortURL]) {
+    return res.send(
+      "Oops! Short url does not exist. Please check the url and try again."
+    );
+  }
+
+  if (!req.cookies.user_id) {
+    return res.send("Please login to access this feature.");
+  }
+
+  if (urlDatabase[shortURL].user_id !== req.cookies.user_id) {
+    return res.send("Unauthorized access. You can only edit your own URLs.");
+  }
+
   delete urlDatabase[shortURL];
 
   res.redirect("/urls"); //Redirect to the index page with list of URLs
 });
 
-
 //Edit and update the longURL in the database
-app.post("/urls/edit/:id", (req, res) => {
+app.post("/urls/:id", (req, res) => {
   const shortURL = req.params.id;
+
+  if (!urlDatabase[shortURL]) {
+    return res.send(
+      "Oops! Short url does not exist. Please check the url and try again."
+    );
+  }
+
+  if (!req.cookies.user_id) {
+    return res.send("Please login to access this feature.");
+  }
+
+  if (urlDatabase[shortURL].user_id !== req.cookies.user_id) {
+    return res.send("Unauthorized access. You can only edit your own URLs.");
+  }
+
   const updatedLongURL = req.body.updatedLongURL;
   urlDatabase[shortURL].longURL = updatedLongURL;
 
@@ -236,7 +268,9 @@ app.post("/login", (req, res) => {
 
   const userFound = findUser(userEmailInput); //Check if user email exists
   if (!userFound) {
-    return res.status(403).send("User account does not exist. Please register for a new account");
+    return res
+      .status(403)
+      .send("User account does not exist. Please register for a new account");
   }
   if (userFound && userPasswordInput !== userFound.password) {
     return res.status(403).send("Incorrect email or password");
@@ -244,7 +278,6 @@ app.post("/login", (req, res) => {
 
   res.cookie("user_id", userFound.id);
   res.redirect("/urls");
-
 });
 
 //Add a logout POST route
@@ -277,8 +310,6 @@ app.post("/register", (req, res) => {
   res.cookie("user_id", userRandomID);
   res.redirect("/urls");
 });
-
-
 
 //Set up the web server to listen on a specific port and displays message once app starts to run
 //All other routes should be above the listen method.
