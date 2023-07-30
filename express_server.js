@@ -1,6 +1,7 @@
 const express = require("express");
 const cookieSession = require("cookie-session");
 const bcrypt = require("bcryptjs");
+const helpers = require("./helpers");
 
 const app = express();
 const PORT = 8080; // default port 8080
@@ -50,15 +51,6 @@ const generateRandomString = function (length) {
   return randomString;
 };
 
-//Check if email input already exists in the user database
-const findUser = function (email) {
-  for (let key in users) {
-    if (users[key].email === email) {
-      return users[key];
-    }
-  }
-  return null;
-};
 
 //Set ejs as the view engine
 app.set("view engine", "ejs");
@@ -82,8 +74,15 @@ app.use(
 
 
 
+/*
+
+
 
 //GET routes
+
+
+
+*/
 
 //Display the "/urls_index" template containing the list of URLs in our database.
 app.get("/urls", (req, res) => {
@@ -197,7 +196,15 @@ app.get("/login", (req, res) => {
   res.render("login_form", templateVars);
 });
 
+/*
+
+
+
 //POST routes
+
+
+
+*/
 
 //Handle POST requests to /urls
 app.post("/urls", (req, res) => {
@@ -270,13 +277,11 @@ app.post("/login", (req, res) => {
   const userEmailInput = req.body.email;
   const userPasswordInput = req.body.password;
 
-  const userFound = findUser(userEmailInput); //Check if user email exists
-  const hashedPassword = userFound.password;
+  const userFound = helpers.getUserByEmail(userEmailInput, users); //Check if user email exists
+  const hashedPassword = userFound?.password; //Use ? to avoid a type error for null cases
 
   if (!userFound) {
-    return res
-      .status(403)
-      .send("User account does not exist. Please register for a new account");
+    return res.status(403).send("User account does not exist. Please register for a new account");
   }
   if (userFound && !bcrypt.compareSync(userPasswordInput, hashedPassword)) {
     return res.status(403).send("Incorrect email or password");
@@ -303,7 +308,7 @@ app.post("/register", (req, res) => {
   if (!userEmailInput || !userPasswordInput) {
     return res.status(400).send("Please enter your email and password");
   }
-  const userFound = findUser(userEmailInput); //Check if user email exists
+  const userFound = helpers.getUserByEmail(userEmailInput, users); //Check if user email exists
   if (userFound) {
     return res.status(400).send("Email already exists");
   }
