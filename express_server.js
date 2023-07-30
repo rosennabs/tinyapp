@@ -1,5 +1,5 @@
 const express = require("express");
-const cookieParser = require("cookie-parser");
+const cookieSession = require("cookie-session");
 const bcrypt = require("bcryptjs");
 
 const app = express();
@@ -39,7 +39,7 @@ const users = {
 //Create a string of 6 random alphanumeric characters
 const generateRandomString = function (length) {
   const alphanumeric =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!&%*#_?/%$";
   let randomString = "";
 
   for (let i = 0; i < length; i++) {
@@ -66,10 +66,19 @@ app.set("view engine", "ejs");
 //Use middleware to receive readable info from our forms' body
 app.use(express.urlencoded({ extended: true }));
 
-//Use a cookie parser to fetch cookies
-app.use(cookieParser());
+//Use a cookie session to fetch and encrypt cookies
+const key1 = generateRandomString(32);
+const key2 = generateRandomString(32);
 
+app.use(
+  cookieSession({
+    name: "session",
+    keys: [key1, key2],
 
+    // Cookie Options
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+  })
+);
 
 
 
@@ -78,7 +87,7 @@ app.use(cookieParser());
 
 //Display the "/urls_index" template containing the list of URLs in our database.
 app.get("/urls", (req, res) => {
-  if (!req.cookies.user_id) {
+  if (!req.session.user_id) {
     //if user is not logged in, redirect to the login page
 
     return res.send("Please login to access available URLs");
@@ -89,7 +98,7 @@ app.get("/urls", (req, res) => {
   const urlsForUser = () => {
     const usersURLs = {};
     for (let key in urlDatabase) {
-      if (urlDatabase[key].user_id === req.cookies.user_id) {
+      if (urlDatabase[key].user_id === req.session.user_id) {
         //Store a user's URLs
         usersURLs[key] = urlDatabase[key];
       }
@@ -98,7 +107,7 @@ app.get("/urls", (req, res) => {
   };
 
   const templateVars = {
-    user: users[req.cookies.user_id],
+    user: users[req.session.user_id],
     urls: urlsForUser(),
   };
 
@@ -107,12 +116,12 @@ app.get("/urls", (req, res) => {
 
 //Display the url_new template/page to create new URL
 app.get("/urls/new", (req, res) => {
-  if (!req.cookies.user_id) {
+  if (!req.session.user_id) {
     // Redirect to login page if user is not logged in
     return res.redirect("/login");
   }
   const templateVars = {
-    user: users[req.cookies.user_id],
+    user: users[req.session.user_id],
   };
   res.render("urls_new", templateVars);
 });
@@ -133,14 +142,14 @@ app.get("/u/:id", (req, res) => {
 
 //Render the urls_show /edit page to access it via the url_index page
 app.get("/urls/:shortId", (req, res) => {
-  if (!req.cookies.user_id) {
+  if (!req.session.user_id) {
     // Redirect to login page if user is not logged in
     return res.send("Please login to access this url!");
   }
 
   const shortId = req.params.shortId;
 
-  if (urlDatabase[shortId].user_id !== req.cookies.user_id) {
+  if (urlDatabase[shortId].user_id !== req.session.user_id) {
     return res.send(
       "Url does not exist in your account. Please check and try again!"
     );
@@ -153,7 +162,7 @@ app.get("/urls/:shortId", (req, res) => {
   }
 
   const templateVars = {
-    user: users[req.cookies.user_id],
+    user: users[req.session.user_id],
     id: shortId,
     longURL: urlDatabase[shortId].longURL,
   };
@@ -164,10 +173,10 @@ app.get("/urls/:shortId", (req, res) => {
 //Create a GET route to render the reg form
 app.get("/register", (req, res) => {
   const templateVars = {
-    user: users[req.cookies.user_id],
+    user: users[req.session.user_id],
   };
 
-  if (req.cookies.user_id) {
+  if (req.session.user_id) {
     //Redirect to /urls if user is already logged in
     return res.redirect("/urls");
   }
@@ -178,26 +187,21 @@ app.get("/register", (req, res) => {
 //Create a GET route to render the login form
 app.get("/login", (req, res) => {
   const templateVars = {
-    user: users[req.cookies.user_id],
+    user: users[req.session.user_id],
   };
 
-  if (req.cookies.user_id) {
+  if (req.session.user_id) {
     // Redirect to /urls if user is already logged in
     return res.redirect("/urls");
   }
   res.render("login_form", templateVars);
 });
 
-
-
-
-
-
 //POST routes
 
 //Handle POST requests to /urls
 app.post("/urls", (req, res) => {
-  if (!req.cookies.user_id) {
+  if (!req.session.user_id) {
     // If user is not logged in, send an error message and return early
     return res.send("Please login to access this feature.");
   }
@@ -208,7 +212,7 @@ app.post("/urls", (req, res) => {
   //Store the new short and long url and associated user_id in the urldatabase
   urlDatabase[newShortURL] = {
     longURL: newLongURL,
-    user_id: req.cookies.user_id,
+    user_id: req.session.user_id,
   };
 
   res.redirect(`/urls/${newShortURL}`); //Redirect the user to the urls/shortID page
@@ -217,18 +221,18 @@ app.post("/urls", (req, res) => {
 //Receives the delete request and deletes a URL resource from the app
 app.post("/urls/:id/delete", (req, res) => {
   const shortURL = req.params.id;
-  
+
   if (!urlDatabase[shortURL]) {
     return res.send(
       "Oops! Short url does not exist. Please check the url and try again."
     );
   }
 
-  if (!req.cookies.user_id) {
+  if (!req.session.user_id) {
     return res.send("Please login to access this feature.");
   }
 
-  if (urlDatabase[shortURL].user_id !== req.cookies.user_id) {
+  if (urlDatabase[shortURL].user_id !== req.session.user_id) {
     return res.send("Unauthorized access. You can only edit your own URLs.");
   }
 
@@ -247,11 +251,11 @@ app.post("/urls/:id", (req, res) => {
     );
   }
 
-  if (!req.cookies.user_id) {
+  if (!req.session.user_id) {
     return res.send("Please login to access this feature.");
   }
 
-  if (urlDatabase[shortURL].user_id !== req.cookies.user_id) {
+  if (urlDatabase[shortURL].user_id !== req.session.user_id) {
     return res.send("Unauthorized access. You can only edit your own URLs.");
   }
 
@@ -274,17 +278,18 @@ app.post("/login", (req, res) => {
       .status(403)
       .send("User account does not exist. Please register for a new account");
   }
-  if (userFound && (!bcrypt.compareSync(userPasswordInput, hashedPassword))) {
+  if (userFound && !bcrypt.compareSync(userPasswordInput, hashedPassword)) {
     return res.status(403).send("Incorrect email or password");
   }
-  
-  res.cookie("user_id", userFound.id);
+
+  //Set encrypted cookie user_id
+  req.session.user_id = userFound.id;
   res.redirect("/urls");
 });
 
 //Add a logout POST route
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
+  req.session = null;
   res.redirect("/login");
 });
 
@@ -310,7 +315,8 @@ app.post("/register", (req, res) => {
     password: hashedPassword,
   };
 
-  res.cookie("user_id", userRandomID);
+  //Set encrypted cookie user_id
+  req.session.user_id = userRandomID;
   res.redirect("/urls");
 });
 
