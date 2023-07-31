@@ -17,20 +17,20 @@
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
 
-        <% if (!user) { %>
-          <!-- Display registration and login links when user is not logged in -->
-            <a class="nav-item nav-link" href="/register">Register</a>
-            <span style="margin: 10px"></span>
-            <a class="nav-item nav-link" href="/login">Login</a>
+          <% if (!user) { %>
+            <!-- Display registration and login links when user is not logged in -->
+              <a class="nav-item nav-link" href="/register">Register</a>
+              <span style="margin: 10px"></span>
+              <a class="nav-item nav-link" href="/login">Login</a>
 
-        <% } else { %>
-          <!-- Display logout button when user is logged in -->
+          <% } else { %>
+            <!-- Display logout button when user is logged in -->
             <form class="form-inline" action="/logout" method="POST">
               <span class="nav-item" style="margin: 10px"> Logged in as: <%= user.email %> </span>
               <button type="submit" class="btn btn-primary">Logout</button>
             </form>
-          </li>
-        <% } %>
+            
+          <% } %>
     
       </div>
     </div>

@@ -258,17 +258,19 @@ app.post("/urls/:id", (req, res) => {
 app.post("/register", (req, res) => {
   const userEmailInput = req.body.email;
   const userPasswordInput = req.body.password;
-  const hashedPassword = bcrypt.hashSync(userPasswordInput, 10); //Hash user's password for security
-  const userRandomID = helpers.generateRandomString(6);
-
+  
   if (!userEmailInput || !userPasswordInput) {
     return res.status(400).send("Please enter an email and password");
   }
+
   const userFound = helpers.getUserByEmail(userEmailInput, users); //Check if user email exists
   if (userFound) {
     return res.status(400).send("Email already exists");
   }
 
+  const hashedPassword = bcrypt.hashSync(userPasswordInput, 10); //Hash user's password for security
+  const userRandomID = helpers.generateRandomString(6);
+  
   //Store new user in the users database
   users[userRandomID] = {
     id: userRandomID,
