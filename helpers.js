@@ -13,7 +13,7 @@ const getUserByEmail = function (email, users) {
 //Create a string of 6 random alphanumeric characters
 const generateRandomString = function (length) {
   const alphanumeric =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!&%*#_?/%$";
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let randomString = "";
 
   for (let i = 0; i < length; i++) {

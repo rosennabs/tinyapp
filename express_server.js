@@ -270,7 +270,7 @@ app.post("/register", (req, res) => {
 
   const hashedPassword = bcrypt.hashSync(userPasswordInput, 10); //Hash user's password for security
   const userRandomID = helpers.generateRandomString(6);
-  
+
   //Store new user in the users database
   users[userRandomID] = {
     id: userRandomID,
