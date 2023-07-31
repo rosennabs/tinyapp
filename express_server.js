@@ -67,6 +67,7 @@ GET routes
 
 */
 
+//Redirect to /url page if user is not logged in
 app.get("/", (req, res) => {
   if (!req.session.user_id) {
     return res.redirect("/login");
@@ -84,9 +85,8 @@ app.get("/urls", (req, res) => {
   const urlsForUser = () => {
     const usersURLs = {};
     for (let key in urlDatabase) {
-      //Compare user_id in urldatabase with user_id from user session
-      if (urlDatabase[key].user_id === req.session.user_id) {
-        //Store a user's URLs
+      //Compare user_id in urldatabase with user_id from encrypted cookie
+      if (urlDatabase[key].user_id === req.session.user_id) { //Store a user's URLs
         usersURLs[key] = urlDatabase[key];
       }
     }
@@ -104,8 +104,7 @@ app.get("/urls", (req, res) => {
 
 //Display the url_new template/page to create new URL
 app.get("/urls/new", (req, res) => {
-  if (!req.session.user_id) {
-    // Redirect to login page if user is not logged in
+  if (!req.session.user_id) { // Redirect to login page if user is not logged in
     return res.redirect("/login");
   }
   const templateVars = {
@@ -130,7 +129,7 @@ app.get("/u/:id", (req, res) => {
 
 //Render the urls_show /edit page
 app.get("/urls/:shortId", (req, res) => {
-  if (!req.session.user_id) {// Redirect to login page if user is not logged in.
+  if (!req.session.user_id) { // Redirect to login page if user is not logged in.
     return res.send("Please login to access this url.");
   }
 
@@ -148,7 +147,6 @@ app.get("/urls/:shortId", (req, res) => {
     );
   }
 
-
   const templateVars = {
     user: users[req.session.user_id],
     id: shortId,
@@ -158,11 +156,10 @@ app.get("/urls/:shortId", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-//Create a GET route to render the reg form
+//Render the reg form
 app.get("/register", (req, res) => {
  
-  if (req.session.user_id) {
-    //Redirect to /urls if user is already logged in
+  if (req.session.user_id) { //Redirect to /urls if user is already logged in
     return res.redirect("/urls");
   }
 
@@ -173,11 +170,10 @@ app.get("/register", (req, res) => {
   res.render("reg_form", templateVars);
 });
 
-//Create a GET route to render the login form
+//Render the login form
 app.get("/login", (req, res) => {
  
   if (req.session.user_id) {
-    // Redirect to /urls if user is already logged in
     return res.redirect("/urls");
   }
 
@@ -196,12 +192,11 @@ POST routes
 
 //Handle POST requests to /urls and create new urls
 app.post("/urls", (req, res) => {
-  if (!req.session.user_id) {
-    // If user is not logged in, send an error message and return early
+  if (!req.session.user_id) { // If user is not logged in, send an error message and return early
     return res.send("Please login to access this feature.");
   }
   // If user is logged in, proceed with the URL shortening logic
-  const newLongURL = req.body.longURL; //Get the longURL inputted in the form
+  const newLongURL = req.body.longURL; //Fetch the longURL inputted through the form
   const newShortURL = helpers.generateRandomString(6);
 
   //Store the new short and long url and associated user_id in the urldatabase
@@ -213,7 +208,7 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${newShortURL}`); 
 });
 
-//Receives the delete request and deletes a URL resource from the database
+//Receive the delete request and deletes a URL resource from the database
 app.post("/urls/:id/delete", (req, res) => {
   const shortURL = req.params.id;
 
@@ -258,6 +253,35 @@ app.post("/urls/:id", (req, res) => {
   res.redirect("/urls");
 });
 
+
+//Create a POST route to handle the registration form data
+app.post("/register", (req, res) => {
+  const userEmailInput = req.body.email;
+  const userPasswordInput = req.body.password;
+  const hashedPassword = bcrypt.hashSync(userPasswordInput, 10); //Hash user's password for security
+  const userRandomID = helpers.generateRandomString(6);
+
+  if (!userEmailInput || !userPasswordInput) {
+    return res.status(400).send("Please enter an email and password");
+  }
+  const userFound = helpers.getUserByEmail(userEmailInput, users); //Check if user email exists
+  if (userFound) {
+    return res.status(400).send("Email already exists");
+  }
+
+  //Store new user in the users database
+  users[userRandomID] = {
+    id: userRandomID,
+    email: userEmailInput,
+    password: hashedPassword,
+  };
+
+  //Set encrypted cookie user_id
+  req.session.user_id = userRandomID;
+  res.redirect("/urls");
+});
+
+
 //Add a login POST route to handle user's login
 app.post("/login", (req, res) => {
   const userEmailInput = req.body.email;
@@ -281,39 +305,13 @@ app.post("/login", (req, res) => {
 
 //Add a logout POST route
 app.post("/logout", (req, res) => {
-  req.session = null; //Delete encrypted cookies
+  req.session = null; //Delete cookies
   res.redirect("/login");
 });
 
-//Create a POST route to handle the registration form data
-app.post("/register", (req, res) => {
-  const userEmailInput = req.body.email;
-  const userPasswordInput = req.body.password;
-  const hashedPassword = bcrypt.hashSync(userPasswordInput, 10);
-  const userRandomID = helpers.generateRandomString(6);
-
-  if (!userEmailInput || !userPasswordInput) {
-    return res.status(400).send("Please enter an email and password");
-  }
-  const userFound = helpers.getUserByEmail(userEmailInput, users); //Check if user email exists
-  if (userFound) {
-    return res.status(400).send("Email already exists");
-  }
-
-  //Store new user in the users database
-  users[userRandomID] = {
-    id: userRandomID,
-    email: userEmailInput,
-    password: hashedPassword,
-  };
-
-  //Set encrypted cookie user_id
-  req.session.user_id = userRandomID;
-  res.redirect("/urls");
-});
 
 //Set up the web server to listen on a specific port and displays message once app starts to run
-//All other routes should be above the listen method.
+//Ensure all other routes are above the listen method.
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
