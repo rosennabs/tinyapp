@@ -25,8 +25,21 @@ const generateRandomString = function (length) {
 };
 
 
+//Display only logged in user's URLs. 
+const urlsForUser = (id, users, urlDatabase) => {
+  
+  const usersURLs = {};
+  for (let key in urlDatabase) {
+    if (users[id].id === urlDatabase[key].user_id) {
+      usersURLs[key] = urlDatabase[key]
+    }
+  }
+    return usersURLs;
+  };
+
 
 module.exports = {
   getUserByEmail,
-  generateRandomString
+  generateRandomString,
+  urlsForUser
 };

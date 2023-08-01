@@ -81,22 +81,10 @@ app.get("/urls", (req, res) => {
     return res.send("Please login to access available URLs");
   }
 
-  //Display only logged in user's URLs. 
-  const urlsForUser = () => {
-    const usersURLs = {};
-    for (let key in urlDatabase) {
-      //Compare user_id in urldatabase with user_id from encrypted cookie
-      if (urlDatabase[key].user_id === req.session.user_id) { //Store a user's URLs
-        usersURLs[key] = urlDatabase[key];
-      }
-    }
-    return usersURLs;
-  };
-
   //Pass variables in a json object for use in the front end
   const templateVars = {
     user: users[req.session.user_id],
-    urls: urlsForUser(),
+    urls: helpers.urlsForUser(req.session.user_id, users, urlDatabase)
   };
 
   res.render("urls_index", templateVars);
